@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+
+# Dependency directories
+/bin/
+/bson/
+/dns/
+/gridfs/
+/pymongo/
+/et_xmlfile/
+/openpyxl/
+*.dist-info/
+six.py
+/boto3/
+/botocore/
+/dateutil/
+/jmespath/
+/s3transfer/
+/urllib3/
+/websockets/
+
+# Virtual environments
+.venv/
+.env/
+
+# vscode
+.vscode/
+
+# zip
+*.zip
