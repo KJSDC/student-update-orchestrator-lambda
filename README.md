@@ -1,4 +1,4 @@
-# Applicant to Student Conversion Orchestrator Lambda
+# Student Update Orchestrator Lambda
 
 ## Setup
 ### 1. Clone the repository:
