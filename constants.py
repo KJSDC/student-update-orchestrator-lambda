@@ -1,5 +1,5 @@
 CHILD_LAMBDA_NAME = "student-update-worker"  # Name of your child to be spawned
-BATCH_SIZE = 500
+BATCH_SIZE = 300
 
 # RESPONSE HEADER
 RESPONSE_HEADERS = {

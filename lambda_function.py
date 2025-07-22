@@ -18,6 +18,7 @@ def lambda_handler(event, context):
     # Step 1: Parse XLSX and extract all rows (as list of dicts)
     rows = extract_rows_from_event(event)
     if not rows:
+        logger.warning("No records found in uploaded file")
         return {
             "statusCode": 400,
             "headers": RESPONSE_HEADERS,
@@ -34,20 +35,21 @@ def lambda_handler(event, context):
     # Step 3: Invoke child Lambdas concurrently
     all_failed = []
 
-    def invoke_with_env(batch):
-        # Pass in the Lambda client and child lambda name
-        return invoke_child_lambda(
-            lambda_client=LAMBDA_CLIENT,
-            child_lambda_name=CHILD_LAMBDA_NAME,
-            batch=batch
-        )
-
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        futures = [executor.submit(invoke_with_env, batch) for batch in batches]
-        for future in concurrent.futures.as_completed(futures):
-            result = future.result()
-            if not result.get("success"):
-                all_failed.extend(result.get("failedRows", []))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+        futures = [
+            executor.submit(invoke_child_lambda, LAMBDA_CLIENT, CHILD_LAMBDA_NAME, batch)
+            for batch in batches
+        ]
+        for idx, future in enumerate(concurrent.futures.as_completed(futures)):
+            try:
+                result = future.result()
+                logger.info(f"Batch {idx+1} processed: {result}")
+                if not result.get("success"):
+                    all_failed.extend(result.get("failedRows", []))
+            except Exception as e:
+                logger.error(f"Exception in child lambda invocation: {e}", exc_info=True)
+                # If an exception occurs, consider all rows in this batch as failed
+                all_failed.extend(batches[idx])
 
     if all_failed:
         logger.warning(f"Failed rows: {all_failed}")
