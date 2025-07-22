@@ -1,6 +1,7 @@
 import json
 import boto3
 import concurrent.futures
+from botocore.config import Config
 
 import logging
 
@@ -10,7 +11,7 @@ from lambda_utils import split_batches, extract_rows_from_event, invoke_child_la
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-LAMBDA_CLIENT = boto3.client("lambda")
+LAMBDA_CLIENT = boto3.client("lambda", config=Config(max_pool_connections=100))
 
 def lambda_handler(event, context):
     logger.info("Parent lambda: triggered")
@@ -35,7 +36,7 @@ def lambda_handler(event, context):
     # Step 3: Invoke child Lambdas concurrently
     all_failed = []
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
         futures = [
             executor.submit(invoke_child_lambda, LAMBDA_CLIENT, CHILD_LAMBDA_NAME, batch)
             for batch in batches
